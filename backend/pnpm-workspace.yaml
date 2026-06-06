@@ -1,0 +1,12 @@
+packages: []
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  'cwebp-bin': true
+  'esbuild': true
+  'mozjpeg': false      # ← block it, sharp will use its own bundled libvips instead
+  'pngquant-bin': true
+  'prisma': true
+  'protobufjs': true
+  'puppeteer': true
+  'sharp': true

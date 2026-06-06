@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Contact Form Submission</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+  </style>
+</head>
+
+<body
+  style="font-family: 'Roboto', Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333333;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%"
+    style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);">
+    <tr>
+      <td style="padding: 30px 0; text-align: center; background-color: #8243EE;">
+        <img src="/public/hue-man-links-logo.png" alt=" Endek Logo" style="max-width: 150px; height: auto;">
+        <h1 style="color: #ffffff; font-size: 24px; margin: 20px 0 0; font-weight: 700;">New Contact Form Submission
+        </h1>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 30px 40px;">
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.5;">A new message has been received through the
+          contact form. Here are the details:</p>
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+          <tr>
+            <td
+              style="padding: 15px; background-color: #f8f8f8; border-radius: 6px; margin-bottom: 15px; display: block;">
+              <p style="margin: 0; font-size: 16px;"><strong style="color: #8243EE;">Subject:</strong> <span
+                  style="color: #333333;">{{subject}}</span></p>
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="padding: 15px; background-color: #f8f8f8; border-radius: 6px; margin-bottom: 15px; display: block;">
+              <p style="margin: 0; font-size: 16px;"><strong style="color: #8243EE;">Name:</strong> <span
+                  style="color: #333333;">{{name}}</span></p>
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="padding: 15px; background-color: #f8f8f8; border-radius: 6px; margin-bottom: 15px; display: block;">
+              <p style="margin: 0; font-size: 16px;"><strong style="color: #8243EE;">Email:</strong> <a
+                  href="mailto:{{email}}" style="text-decoration: none; color: #333333;">{{email}}</a></p>
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="padding: 15px; background-color: #f8f8f8; border-radius: 6px; margin-bottom: 15px; display: block;">
+              <p style="margin: 0 0 10px; font-size: 16px;"><strong style="color: #8243EE;">Message:</strong></p>
+              <p style="margin: 0; color: #333333; line-height: 1.6;">{{description}}</p>
+            </td>
+          </tr>
+        </table>
+        <div style="margin-top: 30px; text-align: center;">
+          <a href="mailto:{{email}}"
+            style="background-color: #8243EE; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Respond
+            to Customer</a>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 30px 40px; background-color: #f4f4f4; text-align: center; font-size: 14px; color: #888888;">
+        <!--<p style="margin: 0 0 10px;">This is an automated message. Please do not reply directly to this email.</p>-->
+        <p style="margin: 0;">
+          <a href="https://huemanlinksinc.com/" style="color: #8243EE; text-decoration: none; font-weight: bold;">
+            Endek</a>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>

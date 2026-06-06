@@ -1,0 +1,289 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  ADMIN
+  PROJECT_MANAGER
+  TEAM_MEMBER
+}
+
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ON_HOLD
+}
+
+enum TaskPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum ActivityAction {
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  PROJECT_DELETED
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_DELETED
+  TASK_STATUS_CHANGED
+  TASK_ASSIGNED
+  MEMBER_ADDED
+  MEMBER_REMOVED
+  COMMENT_ADDED
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_STATUS_CHANGED
+  TASK_DUE_SOON
+  TASK_OVERDUE
+  PROJECT_DEADLINE_SOON
+  MEMBER_ADDED_TO_PROJECT
+  COMMENT_ADDED
+}
+
+// ============================================================
+// USER
+// ============================================================
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(TEAM_MEMBER)
+  avatarUrl    String?
+  isActive     Boolean  @default(true)
+  isDelete     Boolean  @default(false)
+  fcmToken     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // A user belongs to one project at a time (as a member)
+  projectId String?
+  project   Project? @relation("ProjectMembers", fields: [projectId], references: [id])
+
+  // Projects owned/created by this user
+  ownedProjects Project[] @relation("ProjectOwner")
+
+  // Tasks assigned to this user
+  assignedTasks Task[] @relation("TaskAssignee")
+
+  // Tasks created by this user
+  createdTasks Task[] @relation("TaskCreator")
+
+  // Comments authored by this user
+  comments Comment[]
+
+  // Activity logs triggered by this user
+  activityLogs ActivityLog[]
+
+  // Notifications for this user
+  notifications    Notification[]
+  validation       Validation?
+  passwordResetOtp PasswordResetOtp?
+
+  @@map("users")
+}
+
+// ============================================================
+// PROJECT
+// ============================================================
+
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  deadline    DateTime
+  status      ProjectStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Owner / creator of the project
+  ownerId String
+  owner   User   @relation("ProjectOwner", fields: [ownerId], references: [id])
+
+  // Members currently assigned to this project (one project at a time per user)
+  members User[] @relation("ProjectMembers")
+
+  // Tasks under this project
+  tasks Task[]
+
+  // Activity logs scoped to this project
+  activityLogs ActivityLog[]
+
+  @@map("projects")
+}
+
+// ============================================================
+// TASK
+// ============================================================
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  dueDate     DateTime
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(TODO)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Project this task belongs to
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // User who created the task
+  creatorId String
+  creator   User   @relation("TaskCreator", fields: [creatorId], references: [id])
+
+  // User this task is assigned to (optional — can be unassigned)
+  assigneeId String?
+  assignee   User?   @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  // Comments on this task
+  comments Comment[]
+
+  // Activity logs for this task
+  activityLogs ActivityLog[]
+
+  // Notifications linked to this task
+  notifications Notification[]
+
+  // ── Validation notes (enforced in application layer) ──────
+  // 1. title must be unique within the same project
+  // 2. Cannot assign/reassign a task that is already COMPLETED
+  // 3. dueDate must not be a past date on create/update
+  // ─────────────────────────────────────────────────────────
+
+  // DB-level unique constraint: no duplicate title within a project
+  @@unique([projectId, title])
+  @@map("tasks")
+}
+
+// ============================================================
+// COMMENT
+// ============================================================
+
+model Comment {
+  id        String   @id @default(uuid())
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Task this comment belongs to
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // Author of the comment
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  @@map("comments")
+}
+
+// ============================================================
+// ACTIVITY LOG
+// ============================================================
+
+model ActivityLog {
+  id          String         @id @default(uuid())
+  action      ActivityAction
+  // Human-readable description e.g. "Task 'Setup API' assigned to John"
+  description String
+  createdAt   DateTime       @default(now())
+  // updatedAt intentionally omitted — logs are immutable
+
+  // User who triggered this activity
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id])
+
+  // Optional: scoped to a project
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  // Optional: scoped to a specific task
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id])
+
+  @@map("activity_logs")
+}
+
+// ============================================================
+// NOTIFICATION (in-app only)
+// ============================================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  // Short message shown in the notification panel
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Recipient of the notification
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional deep-link references
+  projectId String?
+  taskId    String?
+  task      Task?   @relation(fields: [taskId], references: [id])
+
+  @@map("notifications")
+}
+
+// ============================================================
+// VALIDATION (email verification OTP)
+// ============================================================
+
+model Validation {
+  id         String    @id @default(uuid())
+  otp        Int?
+  isVerified Boolean   @default(false)
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("validations")
+}
+
+// ============================================================
+// PASSWORD RESET OTP (separate model — cleaner flow)
+// ============================================================
+
+model PasswordResetOtp {
+  id        String   @id @default(uuid())
+  otp       Int
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_otps")
+}
