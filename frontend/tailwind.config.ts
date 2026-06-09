@@ -11,9 +11,19 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        card: "var(--card)",
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        primary: "var(--primary)",
+        secondary: "var(--secondary)",
+        muted: "var(--muted)",
+        accent: "var(--accent)",
+        destructive: "var(--destructive)",
       },
     },
   },
   plugins: [],
 };
+
 export default config;
