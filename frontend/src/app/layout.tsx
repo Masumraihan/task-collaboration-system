@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Geist } from "next/font/google";
+import { Gelasio as Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import Providers from "@/providers/Providers";
+import { PersistGate } from "redux-persist/integration/react";
+import { persistor } from "@/lib/store";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -28,11 +31,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang='en' className={cn("font-sans", geist.variable)}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Providers>
+          <PersistGate loading={null} persistor={persistor}>
+            {children}
+          </PersistGate>
+        </Providers>
       </body>
     </html>
   );
